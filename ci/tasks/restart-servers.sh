@@ -5,11 +5,16 @@ echo 'Restarting Gemfire Servers'
 #$ export BOSH_CLIENT=ci
 #$ export BOSH_CLIENT_SECRET=ci-password
 
-echo $BOSH_CACERT > bosh-cacert.cer
-ls -l
+echo $BOSH_CACERT | tr " " "\n" > ca-no-linebreaks.pem
+cat ca-no-linebreaks.pem | tr " " "\n" > temp.pem
+sed -i '/---/d' temp.pem
+echo '-----BEGIN CERTIFICATE-----' > bosh-cacert.pem
+cat temp.pem > bosh-cacert.pem
+echo '-----END CERTIFICATE-----' > bosh-cacert.pem
+cat bosh-cacert.pem
 
 #BOSH FLOW
-bosh --ca-cert bosh-cacert.cer target $BOSH_URL
+bosh --ca-cert bosh-cacert.pem target $BOSH_URL
 bosh status
 bosh download manifest
 bosh restart server-group
