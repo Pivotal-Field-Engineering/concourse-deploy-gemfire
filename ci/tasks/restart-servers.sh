@@ -17,4 +17,5 @@ bosh --ca-cert bosh-cacert.pem target $BOSH_URL
 bosh status
 bosh download manifest $DEPLOYMENT_NAME manifest.yml
 bosh deployment manifest.yml
-bosh --non-interactive restart server-group
+bosh --non-interactive stop server-group --soft
+bosh --non-interactive start server-group 

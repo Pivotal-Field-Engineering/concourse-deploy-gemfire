@@ -2,7 +2,6 @@ groups:
 - name: all
   jobs:
   - get-product-version
-  - deploy
   - configure-cluster
   - validation-test
   - rest-api-test
@@ -235,7 +234,6 @@ jobs:
           BOSH_CLIENT: {{bosh-client}}
           BOSH_CLIENT_SECRET: {{bosh-secret}}
           DEPLOYMENT_NAME: {{deployment-name}}
-
 - name: validation-test
   public: true
   plan:
