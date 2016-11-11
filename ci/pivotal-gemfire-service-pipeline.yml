@@ -3,21 +3,24 @@ groups:
   jobs:
   - get-product-version
   - deploy
+  - configure-cluster
   - validation-test
   - rest-api-test
 - name: deploy
   jobs:
   - get-product-version
   - deploy
+  - configure-cluster
 - name: validation
   jobs:
   - validation-test
   - rest-api-test
+- name: client-onboard
+  jobs:
 
 resources:
 - name: concourse-deploy-gemfire
   type: git
-#  check_every: 4h
   source:
     uri: https://github.com/Pivotal-Field-Engineering/concourse-deploy-gemfire
     branch: master
@@ -44,14 +47,14 @@ resources:
 - name: {{deployment-name}}
   type: bosh-deployment
   source:
-    # Changes need when BOSH is using UAA Auth
+    # Changes needed when BOSH is using UAA Auth
+    #username: {{bosh-user}}
+    #password: {{bosh-pass}}
     ca_cert: {{bosh-cacert}}
     client_id: {{bosh-client}}
     client_secret: {{bosh-secret}}
     deployment: {{deployment-name}}
     target: {{bosh-url}}
-    #username: {{bosh-user}}
-    #password: {{bosh-pass}}
 - name: stemcells
   type: pivnet
   source:
@@ -86,7 +89,7 @@ jobs:
         image_resource:
           type: docker-image
           source:
-            repository: virtmerlin/deploy-worker
+            repository: azwickey/deploy-worker
         run:
           path: concourse-deploy-gemfire/ci/tasks/get-version-from-plugin.sh
         params:
@@ -103,6 +106,7 @@ jobs:
   public: true
   plan:
     - get: concourse-deploy-gemfire
+      trigger: true  #Temporarily add this in for testing
     - get: omg-cli
       passed: [get-product-version]
       params:
@@ -131,7 +135,7 @@ jobs:
         image_resource:
           type: docker-image
           source:
-            repository: virtmerlin/deploy-worker
+            repository: azwickey/deploy-worker
         run:
           path: concourse-deploy-gemfire/ci/tasks/generate-pivotal-gemfire-service-manifest.sh
         params:
@@ -167,6 +171,41 @@ jobs:
         - stemcells/bosh-stemcell*.tgz
         releases:
         - p-gemfire-bosh-release/*.tgz
+- name: configure-cluster
+  public: true
+  plan:
+    - get: concourse-deploy-gemfire
+      trigger: true
+      passed:
+      - deploy
+    - task: enable-pdx
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: azwickey/deploy-worker
+        run:
+          path: concourse-deploy-gemfire/ci/tasks/enable-pdx.sh
+    - task: deploy-jars
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: azwickey/deploy-worker
+        run:
+          path: concourse-deploy-gemfire/ci/tasks/deploy-jars.sh
+    - task: restart-servers
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: azwickey/deploy-worker
+        run:
+          path: concourse-deploy-gemfire/ci/tasks/restart-servers.sh
+
 - name: validation-test
   public: true
   plan:
@@ -174,13 +213,14 @@ jobs:
       trigger: true
       passed:
       - deploy
+      - configure-cluster
     - task: has-multi-az-redundancy-map
       config:
         platform: linux
         image_resource:
           type: docker-image
           source:
-            repository: virtmerlin/deploy-worker
+            repository: azwickey/deploy-worker
         run:
           path: concourse-deploy-gemfire/ci/tasks/validate-multi-az-redundancy-map.sh
         params:
@@ -194,16 +234,20 @@ jobs:
       trigger: true
       passed:
       - deploy
+      - configure-cluster
     - task: has-active-gemfire-rest-api
       config:
         platform: linux
         image_resource:
           type: docker-image
           source:
-            repository: virtmerlin/deploy-worker
+            repository: azwickey/deploy-worker
         run:
           path: concourse-deploy-gemfire/ci/tasks/check-gemfire-rest-api.sh
         params:
-          REST_API_ENDPOINT: {{rest-api-endpoint}}
+          REST_API_ACTIVE: {{rest-api-active}}
+          REST_API_PORT: {{rest-api-port}}
+          PIVNET_TOKEN: {{pivnet-api-token}}
+          LOCATOR_CONNECTION: {{locator-connection-test}}
         inputs:
         - name: concourse-deploy-gemfire
