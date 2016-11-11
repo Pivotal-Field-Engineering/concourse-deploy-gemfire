@@ -230,6 +230,7 @@ jobs:
           BOSH_CACERT: {{bosh-cacert}}
           BOSH_CLIENT: {{bosh-secret}}
           BOSH_CLIENT_SECRET: {{bosh-client}}
+          DEPLOYMENT_NAME: {{deployment-name}}
 
 - name: validation-test
   public: true
