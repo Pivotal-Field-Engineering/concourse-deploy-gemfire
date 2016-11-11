@@ -16,5 +16,6 @@ cat bosh-cacert.pem
 #BOSH FLOW
 bosh --ca-cert bosh-cacert.pem target $BOSH_URL
 bosh status
-bosh download manifest
+bosh download manifest $DEPLOYMENT_NAME manifest.yml
+bosh deployment manifest.yml
 bosh restart server-group
