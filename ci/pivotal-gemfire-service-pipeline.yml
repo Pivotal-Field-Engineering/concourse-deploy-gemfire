@@ -228,8 +228,8 @@ jobs:
         params:
           BOSH_URL: {{bosh-url}}
           BOSH_CACERT: {{bosh-cacert}}
-          BOSH_CLIENT: {{bosh-secret}}
-          BOSH_CLIENT_SECRET: {{bosh-client}}
+          BOSH_CLIENT: {{bosh-client}}
+          BOSH_CLIENT_SECRET: {{bosh-secret}}
           DEPLOYMENT_NAME: {{deployment-name}}
 
 - name: validation-test

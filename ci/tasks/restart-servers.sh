@@ -11,11 +11,10 @@ sed -i '/---/d' temp.pem
 echo '-----BEGIN CERTIFICATE-----' > bosh-cacert.pem
 cat temp.pem >> bosh-cacert.pem
 echo '-----END CERTIFICATE-----' >> bosh-cacert.pem
-cat bosh-cacert.pem
 
 #BOSH FLOW
 bosh --ca-cert bosh-cacert.pem target $BOSH_URL
 bosh status
 bosh download manifest $DEPLOYMENT_NAME manifest.yml
 bosh deployment manifest.yml
-bosh restart server-group
+bosh --non-interactive restart server-group
