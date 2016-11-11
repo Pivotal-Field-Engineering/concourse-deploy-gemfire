@@ -1,3 +1,19 @@
 #!/bin/bash -e
-ls -lha
-curl -vs ${REST_API_ENDPOINT} 2>&1
+
+if $REST_API_ACTIVE
+then
+
+SERVER_IP="$(gfsh \
+-e "connect --locator=${LOCATOR_CONNECTION}" \
+-e "list members" | \
+grep cacheserver-0 | cut -d ' ' -f 3 | cut -d '(' -f 1)"
+echo "Testing rest API on ${SERVER_IP}"
+
+REST_ENDPOINT="http://$SERVER_IP:$REST_API_PORT/gemfire-api/v1/ping"
+echo "Full connection URL ${REST_ENDPOINT}"
+
+curl -vs ${REST_ENDPOINT} 2>&1
+
+else
+echo "REST API is not enabled in config"
+fi
