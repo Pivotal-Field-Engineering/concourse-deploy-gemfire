@@ -61,6 +61,12 @@ resources:
     api_token: {{pivnet-api-token}}
     product_slug: stemcells
     product_version: {{stemcell-version}}
+- name: security-release
+  type: github-release
+  source:
+    user: Pivotal-Field-Engineering
+    repository: concourse-deploy-gemfire
+    access_token: {{github-token}}
 
 resource_types:
 - name: pivnet
@@ -192,6 +198,10 @@ jobs:
         params:
           LOCATOR_CONNECTION: {{locator-connection-test}}
           PIVNET_TOKEN: {{pivnet-api-token}}
+    - get: security-release
+      params:
+        globs:
+        - {{security-glob}}
     - task: deploy-jars
       config:
         platform: linux
@@ -203,6 +213,7 @@ jobs:
           path: concourse-deploy-gemfire/ci/tasks/deploy-jars.sh
         inputs:
         - name: concourse-deploy-gemfire
+        - name: security-release
     - task: restart-servers
       config:
         platform: linux
@@ -214,6 +225,11 @@ jobs:
           path: concourse-deploy-gemfire/ci/tasks/restart-servers.sh
         inputs:
         - name: concourse-deploy-gemfire
+        params:
+          BOSH_URL: {{bosh-url}}
+          BOSH_CACERT: {{bosh-cacert}}
+          BOSH_CLIENT: {{bosh-secret}}
+          BOSH_CLIENT_SECRET: {{bosh-client}}
 
 - name: validation-test
   public: true
