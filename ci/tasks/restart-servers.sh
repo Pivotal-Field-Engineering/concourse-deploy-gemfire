@@ -9,8 +9,8 @@ echo $BOSH_CACERT | tr " " "\n" > ca-no-linebreaks.pem
 cat ca-no-linebreaks.pem | tr " " "\n" > temp.pem
 sed -i '/---/d' temp.pem
 echo '-----BEGIN CERTIFICATE-----' > bosh-cacert.pem
-cat temp.pem > bosh-cacert.pem
-echo '-----END CERTIFICATE-----' > bosh-cacert.pem
+cat temp.pem >> bosh-cacert.pem
+echo '-----END CERTIFICATE-----' >> bosh-cacert.pem
 cat bosh-cacert.pem
 
 #BOSH FLOW
