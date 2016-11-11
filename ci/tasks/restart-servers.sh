@@ -9,7 +9,7 @@ echo $BOSH_CACERT > bosh-cacert.cer
 ls -l
 
 #BOSH FLOW
-bosh --cacert bosh-cacert.cer arget $BOSH_URL
+bosh --ca-cert bosh-cacert.cer arget $BOSH_URL
 bosh status
 bosh download manifest
 bosh restart server-group

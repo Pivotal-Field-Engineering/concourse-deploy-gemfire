@@ -201,7 +201,7 @@ jobs:
     - get: security-release
       params:
         globs:
-        - {{security-glob}}
+        - {{security-release-glob}}
     - task: deploy-jars
       config:
         platform: linux
