@@ -187,6 +187,11 @@ jobs:
             repository: azwickey/deploy-worker
         run:
           path: concourse-deploy-gemfire/ci/tasks/enable-pdx.sh
+        inputs:
+        - name: concourse-deploy-gemfire
+        params:
+          LOCATOR_CONNECTION: {{locator-connection-test}}
+          PIVNET_TOKEN: {{pivnet-api-token}}
     - task: deploy-jars
       config:
         platform: linux
@@ -196,6 +201,8 @@ jobs:
             repository: azwickey/deploy-worker
         run:
           path: concourse-deploy-gemfire/ci/tasks/deploy-jars.sh
+        inputs:
+        - name: concourse-deploy-gemfire
     - task: restart-servers
       config:
         platform: linux
@@ -205,6 +212,8 @@ jobs:
             repository: azwickey/deploy-worker
         run:
           path: concourse-deploy-gemfire/ci/tasks/restart-servers.sh
+        inputs:
+        - name: concourse-deploy-gemfire
 
 - name: validation-test
   public: true
