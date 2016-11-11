@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 echo 'Restarting Gemfire Servers'
 
 #Needed to login

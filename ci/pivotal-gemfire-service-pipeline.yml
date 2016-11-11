@@ -214,6 +214,10 @@ jobs:
         inputs:
         - name: concourse-deploy-gemfire
         - name: security-release
+        params:
+          LOCATOR_CONNECTION: {{locator-connection-test}}
+          PIVNET_TOKEN: {{pivnet-api-token}}
+          JAR: {{security-release-glob}}
     - task: restart-servers
       config:
         platform: linux
