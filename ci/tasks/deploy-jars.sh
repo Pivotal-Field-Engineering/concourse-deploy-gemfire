@@ -7,4 +7,4 @@ echo 'Deploying Auth Jars'
 gfsh version
 gfsh \
 -e "connect --locator=${LOCATOR_CONNECTION}" \
--e "deploy --jar=$JAR"
+-e "deploy --jar=security-release/$JAR"
