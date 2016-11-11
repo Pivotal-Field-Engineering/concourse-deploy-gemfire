@@ -9,7 +9,7 @@ groups:
   jobs:
   - get-product-version
   - deploy
-- name: validation 
+- name: validation
   jobs:
   - validation-test
   - rest-api-test
@@ -17,9 +17,9 @@ groups:
 resources:
 - name: concourse-deploy-gemfire
   type: git
-  check_every: 4h
+#  check_every: 4h
   source:
-    uri: https://github.com/c0-ops/concourse-deploy-gemfire
+    uri: https://github.com/Pivotal-Field-Engineering/concourse-deploy-gemfire
     branch: master
 - name: omg-cli
   type: github-release
@@ -27,7 +27,7 @@ resources:
   source:
     user: enaml-ops
     repository: omg-cli
-- name: p-gemfire-bosh-release 
+- name: p-gemfire-bosh-release
   type: github-release
   check_every: 4h
   source:
@@ -44,11 +44,14 @@ resources:
 - name: {{deployment-name}}
   type: bosh-deployment
   source:
-    #ca_cert: {{bosh-cacert}}
+    # Changes need when BOSH is using UAA Auth
+    ca_cert: {{bosh-cacert}}
+    client_id: {{bosh-client}}
+    client_secret: {{bosh-secret}}
     deployment: {{deployment-name}}
     target: {{bosh-url}}
-    username: {{bosh-user}}
-    password: {{bosh-pass}}
+    #username: {{bosh-user}}
+    #password: {{bosh-pass}}
 - name: stemcells
   type: pivnet
   source:
@@ -65,6 +68,7 @@ resource_types:
 
 jobs:
 - name: get-product-version
+  public: true
   plan:
     - get: concourse-deploy-gemfire
     - get: omg-cli
@@ -95,25 +99,8 @@ jobs:
         outputs:
         - name: versions
           path: ""
-#    - task: update-pipeline
-#      config:
-#        platform: linux
-#        image_resource:
-#          type: docker-image
-#          source:
-#            repository: virtmerlin/deploy-worker
-#        run:
-#          path: concourse-deploy-gemfire/ci/tasks/update-pipeline.sh
-#        params:
-#          PIPELINE_NAME: deploy-gemfire
-#          CONCOURSE_URL: {{concourse-url}}
-#          CONCOURSE_USER: {{concourse-user}}
-#          CONCOURSE_PASS: {{concourse-pass}}
-#        inputs:
-#        - name: concourse-deploy-gemfire
-#        - name: versions
-#        outputs:
 - name: deploy
+  public: true
   plan:
     - get: concourse-deploy-gemfire
     - get: omg-cli
@@ -136,7 +123,8 @@ jobs:
       trigger: true
       params:
         globs:
-        - GemFire-v1.0.3.tgz
+        #- GemFire-v1.0.3.tgz
+        - {{gemfire-release-glob}}
     - task: generate-manifest
       config:
         platform: linux
@@ -161,7 +149,7 @@ jobs:
           OMG_AZ: {{az-list}}
           OMG_NETWORK_NAME: {{network-name}}
           OMG_LOCATOR_STATIC_IP: {{locator-ip-list}}
-          OMG_SERVER_STATIC_IP: {{server-ip-list}}
+          OMG_SERVER_INSTANCE_COUNT: {{server-instance-count}}
           OMG_GEMFIRE_LOCATOR_VM_SIZE: {{locator-vm-size}}
           OMG_GEMFIRE_SERVER_VM_SIZE: {{server-vm-size}}
 
@@ -179,9 +167,13 @@ jobs:
         - stemcells/bosh-stemcell*.tgz
         releases:
         - p-gemfire-bosh-release/*.tgz
-- name: validation-test 
+- name: validation-test
+  public: true
   plan:
     - get: concourse-deploy-gemfire
+      trigger: true
+      passed:
+      - deploy
     - task: has-multi-az-redundancy-map
       config:
         platform: linux
@@ -196,10 +188,13 @@ jobs:
           LOCATOR_CONNECTION: {{locator-connection-test}}
         inputs:
         - name: concourse-deploy-gemfire
-- name: rest-api-test 
+- name: rest-api-test
   plan:
     - get: concourse-deploy-gemfire
-    - task: has-active-gemfire-rest-api 
+      trigger: true
+      passed:
+      - deploy
+    - task: has-active-gemfire-rest-api
       config:
         platform: linux
         image_resource:
@@ -212,4 +207,3 @@ jobs:
           REST_API_ENDPOINT: {{rest-api-endpoint}}
         inputs:
         - name: concourse-deploy-gemfire
-
