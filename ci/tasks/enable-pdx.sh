@@ -7,4 +7,4 @@ echo 'Enabling PDX'
 gfsh version
 gfsh \
 -e "connect --locator=${LOCATOR_CONNECTION}" \
--e "configure pdx --read-serialized=true --disk-store=pdx_store --ignore-unread-fields=false --portable-auto-serializable-classes=com.tmo.*"
+-e "configurea pdx --read-serialized=true --disk-store=pdx_store --ignore-unread-fields=false --portable-auto-serializable-classes=com.tmo.*"
