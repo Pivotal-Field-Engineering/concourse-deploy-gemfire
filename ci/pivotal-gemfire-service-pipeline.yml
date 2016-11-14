@@ -5,6 +5,7 @@ groups:
   - configure-cluster
   - validation-test
   - rest-api-test
+  - deploy
 - name: deploy
   jobs:
   - get-product-version
