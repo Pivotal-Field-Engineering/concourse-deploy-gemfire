@@ -6,6 +6,7 @@ groups:
   - validation-test
   - rest-api-test
   - deploy
+  - onboard-client
 - name: deploy
   jobs:
   - get-product-version
@@ -17,6 +18,7 @@ groups:
   - rest-api-test
 - name: client-onboard
   jobs:
+  - onboard-client
 
 resources:
 - name: concourse-deploy-gemfire
@@ -67,6 +69,11 @@ resources:
     user: Pivotal-Field-Engineering
     repository: concourse-deploy-gemfire
     access_token: {{github-token}}
+- name: client-onboard-repo
+  type: git
+  source:
+    uri: https://github.com/azwickey-pivotal/gemfire-client-onboard
+    branch: master
 
 resource_types:
 - name: pivnet
@@ -181,7 +188,7 @@ jobs:
   public: true
   plan:
     - get: concourse-deploy-gemfire
-      trigger: true
+      trigger: false
       passed:
       - deploy
     - task: enable-pdx
@@ -242,7 +249,6 @@ jobs:
       trigger: true
       passed:
       - deploy
-      - configure-cluster
     - task: has-multi-az-redundancy-map
       config:
         platform: linux
@@ -263,7 +269,6 @@ jobs:
       trigger: true
       passed:
       - deploy
-      - configure-cluster
     - task: has-active-gemfire-rest-api
       config:
         platform: linux
@@ -280,3 +285,21 @@ jobs:
           LOCATOR_CONNECTION: {{locator-connection-test}}
         inputs:
         - name: concourse-deploy-gemfire
+- name: onboard-client
+  plan:
+    - get: client-onboard-repo
+      trigger: true
+    - task: onboard
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: azwickey/deploy-worker
+        run:
+          path: client-onboard-repo/ci/tasks/onboard-clients.sh
+        params:
+          PIVNET_TOKEN: {{pivnet-api-token}}
+          LOCATOR_CONNECTION: {{locator-connection-test}}
+        inputs:
+        - name: client-onboard-repo
