@@ -1,0 +1,302 @@
+groups:
+- name: all
+  jobs:
+  - get-product-version
+  - configure-cluster
+  - validation-test
+  - rest-api-test
+  - deploy
+  - onboard-client
+- name: deploy
+  jobs:
+  - get-product-version
+  - deploy
+  - configure-cluster
+- name: validation
+  jobs:
+  - validation-test
+  - rest-api-test
+- name: client-onboard
+  jobs:
+  - onboard-client
+
+resources:
+- name: concourse-deploy-gemfire
+  type: git
+  source:
+    uri: https://github.com/Pivotal-Field-Engineering/concourse-deploy-gemfire
+    branch: master
+- name: omg-cli
+  type: github-release
+  check_every: 4h
+  source:
+    user: enaml-ops
+    repository: omg-cli
+- name: p-gemfire-bosh-release
+  type: github-release
+  check_every: 4h
+  source:
+    user: c0-ops
+    repository: cf-gemfire-release
+    access_token: {{github-token}}
+- name: omg-product-bundle
+  type: github-release
+  check_every: 4h
+  source:
+    user: enaml-ops
+    repository: omg-product-bundle
+    access_token: {{github-token}}
+- name: {{deployment-name}}
+  type: bosh-deployment
+  source:
+    # Changes needed when BOSH is using UAA Auth
+    username: {{bosh-user}}
+    password: {{bosh-pass}}
+    deployment: {{deployment-name}}
+    target: {{bosh-url}}
+- name: stemcells
+  type: pivnet
+  source:
+    api_token: {{pivnet-api-token}}
+    product_slug: stemcells
+    product_version: {{stemcell-version}}
+- name: security-release
+  type: github-release
+  source:
+    user: Pivotal-Field-Engineering
+    repository: concourse-deploy-gemfire
+    access_token: {{github-token}}
+- name: client-onboard-repo
+  type: git
+  source:
+    uri: https://github.com/azwickey-pivotal/gemfire-client-onboard
+    branch: master
+
+resource_types:
+- name: pivnet
+  type: docker-image
+  source:
+    repository: pivotalcf/pivnet-resource
+    tag: latest-final
+
+jobs:
+- name: get-product-version
+  public: true
+  plan:
+    - get: concourse-deploy-gemfire
+    - get: omg-cli
+      params:
+        globs:
+        - omg-linux
+    - get: omg-product-bundle
+      trigger: true
+      params:
+        globs:
+        - p-gemfire-plugin-linux
+    - task: get-product-version
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: azwickey/deploy-worker
+        run:
+          path: concourse-deploy-gemfire/ci/tasks/get-version-from-plugin.sh
+        params:
+          PRODUCT_PLUGIN: {{product_plugin}}
+          OUTPUT_DIR: versions
+        inputs:
+        - name: concourse-deploy-gemfire
+        - name: omg-cli
+        - name: omg-product-bundle
+        outputs:
+        - name: versions
+          path: ""
+- name: deploy
+  public: true
+  plan:
+    - get: concourse-deploy-gemfire
+      trigger: true  #Temporarily add this in for testing
+    - get: omg-cli
+      passed: [get-product-version]
+      params:
+        globs:
+        - omg-linux
+    - get: omg-product-bundle
+      passed: [get-product-version]
+      trigger: true
+      params:
+        globs:
+        - p-gemfire-plugin-linux
+    - get: stemcells
+      trigger: true
+      params:
+        globs:
+        - {{stemcell-cpi-glob}}
+    - get: p-gemfire-bosh-release
+      trigger: true
+      params:
+        globs:
+        #- GemFire-v1.0.3.tgz
+        - {{gemfire-release-glob}}
+    - task: generate-manifest
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: azwickey/deploy-worker
+        run:
+          path: concourse-deploy-gemfire/ci/tasks/generate-pivotal-gemfire-service-manifest.sh
+        params:
+          BOSH_CLIENT: {{bosh-user}}
+          BOSH_CLIENT_SECRET: {{bosh-pass}}
+          BOSH_URL: {{bosh-url}}
+          BOSH_PORT: {{bosh-port}}
+          BOSH_CACERT: {{bosh-cacert}}
+          DEPLOYMENT_NAME: {{deployment-name}}
+          PRODUCT_PLUGIN: {{product_plugin}}
+          STEMCELL_VERSION: {{stemcell-version}}
+          OUTPUT_DIR: manifest
+          OMG_GEMFIRE_DEV_REST_API_PORT: {{rest-api-port}}
+          OMG_GEMFIRE_DEV_REST_API_ACTIVE: {{rest-api-active}}
+          OMG_AZ: {{az-list}}
+          OMG_NETWORK_NAME: {{network-name}}
+          OMG_LOCATOR_STATIC_IP: {{locator-ip-list}}
+          OMG_SERVER_INSTANCE_COUNT: {{server-instance-count}}
+          OMG_GEMFIRE_LOCATOR_VM_SIZE: {{locator-vm-size}}
+          OMG_GEMFIRE_SERVER_VM_SIZE: {{server-vm-size}}
+
+        inputs:
+        - name: concourse-deploy-gemfire
+        - name: omg-cli
+        - name: omg-product-bundle
+        outputs:
+        - name: manifest
+          path: ""
+    - put: {{deployment-name}}
+      params:
+        manifest: manifest/deployment.yml
+        stemcells:
+        - stemcells/bosh-stemcell*.tgz
+        releases:
+        - p-gemfire-bosh-release/*.tgz
+- name: configure-cluster
+  public: true
+  plan:
+    - get: concourse-deploy-gemfire
+      trigger: false
+      passed:
+      - deploy
+    - task: enable-pdx
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: azwickey/deploy-worker
+        run:
+          path: concourse-deploy-gemfire/ci/tasks/enable-pdx.sh
+        inputs:
+        - name: concourse-deploy-gemfire
+        params:
+          LOCATOR_CONNECTION: {{locator-connection-test}}
+          PIVNET_TOKEN: {{pivnet-api-token}}
+    - get: security-release
+      params:
+        globs:
+        - {{security-release-glob}}
+    - task: deploy-jars
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: azwickey/deploy-worker
+        run:
+          path: concourse-deploy-gemfire/ci/tasks/deploy-jars.sh
+        inputs:
+        - name: concourse-deploy-gemfire
+        - name: security-release
+        params:
+          LOCATOR_CONNECTION: {{locator-connection-test}}
+          PIVNET_TOKEN: {{pivnet-api-token}}
+          JAR: {{security-release-glob}}
+    - task: restart-servers
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: azwickey/deploy-worker
+        run:
+          path: concourse-deploy-gemfire/ci/tasks/restart-servers.sh
+        inputs:
+        - name: concourse-deploy-gemfire
+        params:
+          BOSH_URL: {{bosh-url}}
+          BOSH_CACERT: {{bosh-cacert}}
+          BOSH_USER: {{bosh-user}}
+          BOSH_PASSWORD: {{bosh-pass}}
+          DEPLOYMENT_NAME: {{deployment-name}}
+- name: validation-test
+  public: true
+  plan:
+    - get: concourse-deploy-gemfire
+      trigger: true
+      passed:
+      - deploy
+    - task: has-multi-az-redundancy-map
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: azwickey/deploy-worker
+        run:
+          path: concourse-deploy-gemfire/ci/tasks/validate-multi-az-redundancy-map.sh
+        params:
+          PIVNET_TOKEN: {{pivnet-api-token}}
+          LOCATOR_CONNECTION: {{locator-connection-test}}
+        inputs:
+        - name: concourse-deploy-gemfire
+- name: rest-api-test
+  plan:
+    - get: concourse-deploy-gemfire
+      trigger: true
+      passed:
+      - deploy
+    - task: has-active-gemfire-rest-api
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: azwickey/deploy-worker
+        run:
+          path: concourse-deploy-gemfire/ci/tasks/check-gemfire-rest-api.sh
+        params:
+          REST_API_ACTIVE: {{rest-api-active}}
+          REST_API_PORT: {{rest-api-port}}
+          PIVNET_TOKEN: {{pivnet-api-token}}
+          LOCATOR_CONNECTION: {{locator-connection-test}}
+        inputs:
+        - name: concourse-deploy-gemfire
+- name: onboard-client
+  plan:
+    - get: client-onboard-repo
+      trigger: true
+    - task: onboard
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: azwickey/deploy-worker
+        run:
+          path: client-onboard-repo/ci/tasks/onboard-clients.sh
+        params:
+          PIVNET_TOKEN: {{pivnet-api-token}}
+          LOCATOR_CONNECTION: {{locator-connection-test}}
+        inputs:
+        - name: client-onboard-repo
