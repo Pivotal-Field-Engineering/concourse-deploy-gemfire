@@ -163,7 +163,7 @@ jobs:
           OMG_AZ: {{az-list}}
           OMG_NETWORK_NAME: {{network-name}}
           OMG_LOCATOR_STATIC_IP: {{locator-ip-list}}
-          OMG_SERVER_INSTANCE_COUNT: {{server-instance-count}}
+          OMG_SERVER_STATIC_IP: {{server-ip-list}}
           OMG_GEMFIRE_LOCATOR_VM_SIZE: {{locator-vm-size}}
           OMG_GEMFIRE_SERVER_VM_SIZE: {{server-vm-size}}
 

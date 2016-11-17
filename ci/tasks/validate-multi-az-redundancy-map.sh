@@ -27,6 +27,6 @@ cat gemfire-output.txt
 # checks redundancy in regions using the suggested method from pivotal docs:
 # http://gemfire.docs.pivotal.io/docs-gemfire/latest/developing/partitioned_regions/checking_region_redundancy.html
 cat gemfire-output.txt | grep numBucketsWithoutRedundancy | grep "| 0" &&
-cat gemfire-output.txt | grep redundancy-zone | grep ": env1" &&
-cat gemfire-output.txt | grep redundancy-zone | grep ": env2" &&
-cat gemfire-output.txt | grep redundancy-zone | grep ": env3"
+cat gemfire-output.txt | grep redundancy-zone | grep ": az1" &&
+cat gemfire-output.txt | grep redundancy-zone | grep ": az2" &&
+cat gemfire-output.txt | grep redundancy-zone | grep ": az3"
