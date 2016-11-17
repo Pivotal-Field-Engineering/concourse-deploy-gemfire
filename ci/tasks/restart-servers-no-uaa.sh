@@ -10,7 +10,7 @@ echo '-----END CERTIFICATE-----' >> bosh-cacert.pem
 
 #BOSH FLOW
 bosh target $BOSH_URL
-bosh login
+bosh login $BOSH_USER $BOSH_PASSWORD
 bosh status
 bosh download manifest $DEPLOYMENT_NAME manifest.yml
 bosh deployment manifest.yml
