@@ -4,7 +4,7 @@ groups:
   - get-product-version
   - configure-cluster
   - validation-test
-  - -api-test
+  - rest-api-test
   - deploy
   - onboard-client
 - name: deploy
@@ -15,7 +15,7 @@ groups:
 - name: validation
   jobs:
   - validation-test
-  - -api-test
+  - rest-api-test
 - name: client-onboard
   jobs:
   - onboard-client
@@ -158,8 +158,8 @@ jobs:
           PRODUCT_PLUGIN: {{product_plugin}}
           STEMCELL_VERSION: {{stemcell-version}}
           OUTPUT_DIR: manifest
-          OMG_GEMFIRE_DEV__API_PORT: {{-api-port}}
-          OMG_GEMFIRE_DEV__API_ACTIVE: {{-api-active}}
+          OMG_GEMFIRE_DEV_REST_API_PORT: {{rest-api-port}}
+          OMG_GEMFIRE_DEV_REST_API_ACTIVE: {{rest-api-active}}
           OMG_AZ: {{az-list}}
           OMG_NETWORK_NAME: {{network-name}}
           OMG_LOCATOR_STATIC_IP: {{locator-ip-list}}
