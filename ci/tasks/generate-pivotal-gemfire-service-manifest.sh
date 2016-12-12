@@ -14,6 +14,12 @@ omg-cli/omg-linux deploy-product \
   --print-manifest \
   --ssl-ignore \
   $PRODUCT_PLUGIN \
+  --use-authn \
+  --public-key-pass tmo123 \
+  --security-client-authenticator "templates.security.PKCSAuthenticator.create" \
+  --security-client-accessor "templates.security.SimpleAuthorization.create" \
+  --keystore-local-path certificatetruststore \
+  --security-jar-local-path security.jar \
   --deployment-name $DEPLOYMENT_NAME \
   --stemcell-ver $STEMCELL_VERSION > manifest/deployment.yml
 
