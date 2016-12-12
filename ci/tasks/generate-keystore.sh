@@ -1,7 +1,5 @@
 #!/bin/bash -e
 ls -lha
-mkdir java-keystore
-ls -lha
 cd java-keystore
 
 # this generates a keystore named gemfire8.keystore and adds a
