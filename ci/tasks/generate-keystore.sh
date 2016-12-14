@@ -16,7 +16,7 @@ keytool -genkeypair \
 -storepass $KEYSTORE_PASS \
 -validity 180
 
-#Test Client Cert Import
+#Test Client Cert Import  -- This isn't working.  What is the process to import clients so we can test later
 #keytool -importcert \
 #-alias test-client \
 #-file ../gemfire-security/test-client.cer \
