@@ -1,4 +1,6 @@
 #!/bin/bash -e
+set -xe
+
 ls -lha
 cd java-keystore
 
