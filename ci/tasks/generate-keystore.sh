@@ -16,8 +16,8 @@ keytool -genkeypair \
 -storepass $KEYSTORE_PASS \
 -validity 180
 
-#Test Client Cert
-keytool -importcert \
--alias test-client \
--file ../gemfire-security/test-client.cer \
--keystore gemfire8.keystore
+#Test Client Cert Import
+#keytool -importcert \
+#-alias test-client \
+#-file ../gemfire-security/test-client.cer \
+#-keystore gemfire8.keystore
