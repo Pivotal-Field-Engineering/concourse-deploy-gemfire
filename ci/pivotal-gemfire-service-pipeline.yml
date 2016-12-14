@@ -124,6 +124,8 @@ jobs:
       params:
         globs:
         - {{security-glob}}
+        - {{security-client-glob}}
+        - test-client.cer
     - get: omg-cli
       passed:
         - get-product-version
@@ -160,6 +162,7 @@ jobs:
           KEYSTORE_PASS: {{security-public-keypass}}
         inputs:
         - name: concourse-deploy-gemfire
+        - name: gemfire-security
         outputs:
         - name: java-keystore
     - task: generate-manifest
