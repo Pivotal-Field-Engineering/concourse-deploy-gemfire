@@ -73,6 +73,13 @@ resources:
   source:
     uri: https://github.com/azwickey-pivotal/gemfire-client-onboard
     branch: master
+- name: test-client-keys
+  type: s3
+  source:
+    bucket: tmo-gemfire-security
+    regexp: haas50-keys/(.*)
+    access_key_id: {{s3-access-key-id}}
+    secret_access_key: {{s3-secret-access-key}}
 
 resource_types:
 - name: pivnet
@@ -125,7 +132,6 @@ jobs:
         globs:
         - {{security-glob}}
         - {{security-client-glob}}
-        - test-client.cer
     - get: omg-cli
       passed:
         - get-product-version
@@ -165,6 +171,9 @@ jobs:
         - name: gemfire-security
         outputs:
         - name: java-keystore
+    - put: test-client-keys
+      params:
+        file: java-keystore/valid-client*
     - task: generate-manifest
       config:
         platform: linux
@@ -302,6 +311,11 @@ jobs:
       trigger: true
       passed:
       - deploy
+    - get: gemfire-security
+      params:
+        globs:
+        - {{security-client-glob}}
+    - get: test-client-keys
     - task: validate-authentication
       config:
         platform: linux
@@ -314,8 +328,12 @@ jobs:
         params:
           PIVNET_TOKEN: {{pivnet-api-token}}
           LOCATOR_CONNECTION: {{locator-connection-test}}
+          TEST_JAR: {{security-client-glob}}
+          SECURITY_PUBLIC_KEYPASS: {{security-public-keypass}}
         inputs:
         - name: concourse-deploy-gemfire
+        - name: gemfire-security
+        - name: test-client-keys
     - task: validate-authorization
       config:
         platform: linux
