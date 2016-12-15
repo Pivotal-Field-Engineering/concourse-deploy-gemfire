@@ -15,12 +15,13 @@ omg-cli/omg-linux deploy-product \
   --ssl-ignore \
   $PRODUCT_PLUGIN \
   --use-authn \
-  --public-key-pass tmo123 \
+  --public-key-pass $SECURITY_PUBLIC_KEYPASS \
   --security-client-authenticator $SECURITY_CLIENT_AUTHENTICATOR \
   --security-client-accessor $SECURITY_CLIENT_ACCESSOR \
-  --keystore-local-path java-keystore/gemfire8.keystore \
+  --keystore-local-path java-keystore/truststore \
   --security-jar-local-path gemfire-security/$SECURITY_CLIENT_JAR \
   --deployment-name $DEPLOYMENT_NAME \
   --stemcell-ver $STEMCELL_VERSION > manifest/deployment.yml
 
+cat manifest/deployment.yml
 #eof

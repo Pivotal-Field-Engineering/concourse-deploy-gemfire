@@ -4,20 +4,49 @@ set -xe
 ls -lha
 cd java-keystore
 
-# this generates a keystore named gemfire8.keystore and adds a
-# public/private key pair to it with an alias named gemfire8
 keytool -genkeypair \
 -dname "cn=Your Name, ou=GemFire, o=GemStone, c=US" \
 -storetype PKCS12 \
 -keyalg RSA \
 -keysize 2048 \
--alias gemfire8 \
--keystore gemfire8.keystore \
+-alias valid-client \
+-keystore valid.keystore \
 -storepass $KEYSTORE_PASS \
 -validity 180
 
-#Test Client Cert Import  -- This isn't working.  What is the process to import clients so we can test later
-#keytool -importcert \
-#-alias test-client \
-#-file ../gemfire-security/test-client.cer \
-#-keystore gemfire8.keystore
+keytool -genkeypair \
+-dname "cn=Your Name, ou=GemFire, o=GemStone, c=US" \
+-storetype PKCS12 \
+-keyalg RSA \
+-keysize 2048 \
+-alias invalid-client \
+-keystore invalid.keystore \
+-storepass $KEYSTORE_PASS \
+-validity 180
+
+keytool -exportcert \
+-storetype PKCS12 \
+-keyalg RSA \
+-keysize 2048 \
+-alias valid-client \
+-keystore valid-client.keystore \
+-storepass $KEYSTORE_PASS \
+-rfc \
+-file valid-client.cer
+
+keytool -exportcert \
+-storetype PKCS12 \
+-keyalg RSA \
+-keysize 2048 \
+-alias invalid-client \
+-keystore invalid-client.keystore \
+-storepass $KEYSTORE_PASS \
+-rfc \
+-file valid-client.cer
+
+keytool -import \
+-file valid-client.cer \
+-alias valid-client \
+-keystore truststore \
+-storepass $KEYSTORE_PASS \
+-noprompt
