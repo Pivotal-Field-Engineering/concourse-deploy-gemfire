@@ -10,7 +10,7 @@ keytool -genkeypair \
 -keyalg RSA \
 -keysize 2048 \
 -alias valid-client \
--keystore valid.keystore \
+-keystore valid-client.keystore \
 -storepass $KEYSTORE_PASS \
 -validity 180
 
@@ -20,7 +20,7 @@ keytool -genkeypair \
 -keyalg RSA \
 -keysize 2048 \
 -alias invalid-client \
--keystore invalid.keystore \
+-keystore invalid-client.keystore \
 -storepass $KEYSTORE_PASS \
 -validity 180
 

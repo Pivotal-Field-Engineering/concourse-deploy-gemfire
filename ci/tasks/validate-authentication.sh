@@ -6,4 +6,6 @@ sudo dpkg -i pivotal-gemfire.deb
 gfsh version
 gfsh \
 -e "connect --locator=${LOCATOR_CONNECTION}" \
--e "list members"
+-e "list members" \
+-e "create region --name=test-region --type=PARTITION_REDUNDANT" \
+-e "list regions"
