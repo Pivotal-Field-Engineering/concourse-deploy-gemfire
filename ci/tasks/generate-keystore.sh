@@ -32,5 +32,4 @@ keytool -import \
 -noprompt
 
 #Copy versioned files so S3 can hanlde them
-cp valid-client.cer valid-client-1.cer
-cp valid-client.keystore valid-client-1.keystore
+cp valid-client.keystore valid-client-keystore-1.0.0
