@@ -26,7 +26,7 @@ cat gemfire.xml
 echo "name=SecurityPkcsClient" >> valid-client.properties
 echo "cache-xml-file=gemfire.xml.xml" >> valid-client.properties
 echo "security-client-auth-init=templates.security.PKCSAuthInit.create" >> valid-client.properties
-echo "security-keystorepath=test-client-keys/valid-client.keystore" >> valid-client.properties
+echo "security-keystorepath=test-client-keys/valid-client-keystore-1.0.0" >> valid-client.properties
 echo "security-alias=valid-client" >> valid-client.properties
 echo "security-keystorepass=$SECURITY_PUBLIC_KEYPASS" >> valid-client.properties
 cat valid-client.properties
