@@ -7,7 +7,7 @@ export JRE_HOME
 export PATH
 
 ls -lha
-wget -O "pivotal-gemfire.deb" --post-data="" --header="Authorization: Token ${PIVNET_TOKEN}" https://network.pivotal.io/api/v2/products/pivotal-gemfire/releases/2804/product_files/8892/download
+wget -O "pivotal-gemfire.deb" --post-data="" --header="Authorization: Token ${PIVNET_TOKEN}" $GEMFIRE_CLIENT_URL
 dpkg -i pivotal-gemfire.deb
 
 gfsh version
