@@ -327,6 +327,7 @@ jobs:
           path: concourse-deploy-gemfire/ci/tasks/validate-authentication.sh
         params:
           PIVNET_TOKEN: {{pivnet-api-token}}
+          GEMFIRE_CLIENT_URL: {{gemfire-client-url}}
           LOCATOR_CONNECTION: {{locator-connection-test}}
           TEST_JAR: {{security-client-glob}}
           SECURITY_PUBLIC_KEYPASS: {{security-public-keypass}}
