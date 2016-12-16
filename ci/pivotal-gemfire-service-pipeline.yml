@@ -77,7 +77,7 @@ resources:
   type: s3
   source:
     bucket: tmo-gemfire-security
-    regexp: haas50-keys/valid-client-keystore-(.*)
+    versioned_file: haas50-keys/valid-client.keystore
     access_key_id: {{s3-access-key-id}}
     secret_access_key: {{s3-secret-access-key}}
 
@@ -173,7 +173,7 @@ jobs:
         - name: java-keystore
     - put: test-client-keys
       params:
-        file: java-keystore/valid-client-keystore-1.0.0
+        file: java-keystore/valid-client.keystore
     - task: generate-manifest
       config:
         platform: linux
