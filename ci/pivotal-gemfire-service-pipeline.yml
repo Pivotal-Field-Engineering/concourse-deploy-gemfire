@@ -7,11 +7,13 @@ groups:
   - rest-api-test
   - security-test
   - deploy
+  - deploy-authz-jars
   - onboard-client
 - name: deploy
   jobs:
   - get-product-version
   - deploy
+  - deploy-authz-jars
   - configure-cluster
 - name: validation
   jobs:

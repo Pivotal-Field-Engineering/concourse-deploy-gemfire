@@ -44,4 +44,24 @@ java  -Done-jar.main.class=com.tmo.security.SecurityPkcsClient \
 valid-client.properties test-region >> valid-client.log
 cat valid-client.log
 
-cat valid-client.log | grep "Auth Success"
+#Test with invalid client
+echo "name=SecurityPkcsClient" >> config/invalid-client.properties
+echo "cache-xml-file=gemfire.xml" >> config/invalid-client.properties
+echo "security-client-auth-init=templates.security.PKCSAuthInit.create" >> config/invalid-client.properties
+echo "security-keystorepath=test-client-keys/valid-client.keystore" >> config/invalid-client.properties
+echo "security-alias=invalid-client" >> config/invalid-client.properties
+echo "security-keystorepass=$SECURITY_PUBLIC_KEYPASS" >> config/invalid-client.properties
+cat config/invalid-client.properties
+
+java  -Done-jar.main.class=com.tmo.security.SecurityPkcsClient \
+-jar target/secure-client-0.0.1-SNAPSHOT.one-jar.jar \
+config/invalid-client.properties test-region >> invalid-client.log
+cat invalid-client.log
+
+gfsh \
+-e "connect --locator=${LOCATOR_CONNECTION}" \
+-e "destroy region --name=/test-region" \
+-e "list regions"
+
+cat valid-client.log | grep "Auth Success" &&
+cat invalid-client.log | grep "Auth Failed"
