@@ -44,7 +44,7 @@ deployment-name: tmo-gemfire
 stemcell-cpi-glob: '*vsphere*'
 stemcell-version: 3263.8
 gemfire-release-glob: GemFire-v1.0.4.tgz
-product_plugin: p-gemfire-plugin-linux
+product_plugin: p-gemfire-linux
 pivnet-api-token: xxxxxxx
 github-token: xxxxxxx
 az-list: env1,env2,env3
