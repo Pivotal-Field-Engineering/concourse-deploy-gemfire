@@ -52,7 +52,7 @@ resources:
   check_every: 4h
   source:
     user: enaml-ops
-    repository: omg-product-bundle
+    repository: gemfire-plugin
     access_token: {{github-token}}
 - name: {{deployment-name}}
   type: bosh-deployment
@@ -101,7 +101,7 @@ jobs:
       trigger: true
       params:
         globs:
-        - p-gemfire-plugin-linux
+        - p-gemfire-linux
     - task: get-product-version
       config:
         platform: linux
@@ -144,7 +144,7 @@ jobs:
       trigger: true
       params:
         globs:
-        - p-gemfire-plugin-linux
+        - p-gemfire-linux
     - get: stemcells
       trigger: true
       params:
@@ -171,9 +171,6 @@ jobs:
         - name: gemfire-security
         outputs:
         - name: java-keystore
-    - put: test-client-keys
-      params:
-        file: java-keystore/valid-client.keystore
     - task: generate-manifest
       config:
         platform: linux
@@ -222,6 +219,38 @@ jobs:
         - stemcells/bosh-stemcell*.tgz
         releases:
         - p-gemfire-bosh-release/*.tgz
+    - put: test-client-keys
+      params:
+        file: java-keystore/valid-client.keystore
+- name: deploy-authz-jars
+  public: true
+  plan:
+    - get: concourse-deploy-gemfire
+      trigger: true
+      passed:
+      - deploy
+    - get: gemfire-security
+      trigger: true
+      params:
+        globs:
+        - {{security-authz-glob}}
+    - task: deploy-jars
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: azwickey/deploy-worker
+        run:
+          path: concourse-deploy-gemfire/ci/tasks/deploy-jars.sh
+        inputs:
+        - name: concourse-deploy-gemfire
+        - name: gemfire-security
+        params:
+          LOCATOR_CONNECTION: {{locator-connection-test}}
+          PIVNET_TOKEN: {{pivnet-api-token}}
+          GEMFIRE_CLIENT_URL: {{gemfire-client-url}}
+          JAR: {{security-authz-glob}}
 - name: configure-cluster
   public: true
   plan:
@@ -243,6 +272,7 @@ jobs:
         params:
           LOCATOR_CONNECTION: {{locator-connection-test}}
           PIVNET_TOKEN: {{pivnet-api-token}}
+          GEMFIRE_CLIENT_URL: {{gemfire-client-url}}
     - task: restart-servers
       config:
         platform: linux
@@ -280,6 +310,7 @@ jobs:
           PIVNET_TOKEN: {{pivnet-api-token}}
           LOCATOR_CONNECTION: {{locator-connection-test}}
           AZ_PREFIX: {{az-prefix}}
+          GEMFIRE_CLIENT_URL: {{gemfire-client-url}}
         inputs:
         - name: concourse-deploy-gemfire
 - name: rest-api-test
@@ -301,6 +332,7 @@ jobs:
           REST_API_ACTIVE: {{rest-api-active}}
           REST_API_PORT: {{rest-api-port}}
           PIVNET_TOKEN: {{pivnet-api-token}}
+          GEMFIRE_CLIENT_URL: {{gemfire-client-url}}
           LOCATOR_CONNECTION: {{locator-connection-test}}
         inputs:
         - name: concourse-deploy-gemfire
@@ -311,6 +343,7 @@ jobs:
       trigger: true
       passed:
       - deploy
+      - deploy-authz-jars
     - get: gemfire-security
       params:
         globs:
@@ -346,6 +379,7 @@ jobs:
           path: concourse-deploy-gemfire/ci/tasks/validate-authorization.sh
         params:
           PIVNET_TOKEN: {{pivnet-api-token}}
+          GEMFIRE_CLIENT_URL: {{gemfire-client-url}}
           LOCATOR_CONNECTION: {{locator-connection-test}}
         inputs:
         - name: concourse-deploy-gemfire
@@ -364,6 +398,7 @@ jobs:
           path: client-onboard-repo/ci/tasks/onboard-clients.sh
         params:
           PIVNET_TOKEN: {{pivnet-api-token}}
+          GEMFIRE_CLIENT_URL: {{gemfire-client-url}}
           LOCATOR_CONNECTION: {{locator-connection-test}}
         inputs:
         - name: client-onboard-repo
