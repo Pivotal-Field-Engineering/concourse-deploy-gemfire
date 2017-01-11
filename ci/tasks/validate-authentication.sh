@@ -55,7 +55,7 @@ cat config/invalid-client.properties
 
 java  -Done-jar.main.class=com.tmo.security.SecurityPkcsClient \
 -jar target/secure-client-0.0.1-SNAPSHOT.one-jar.jar \
-config/invalid-client.properties test-region >> invalid-client.log
+valid-client.properties test-region >> invalid-client.log
 cat invalid-client.log
 
 gfsh \
