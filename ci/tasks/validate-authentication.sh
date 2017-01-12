@@ -45,13 +45,13 @@ valid-client.properties test-region >> valid-client.log
 cat valid-client.log
 
 #Test with invalid client
-echo "name=SecurityPkcsClient" >> config/invalid-client.properties
-echo "cache-xml-file=gemfire.xml" >> config/invalid-client.properties
-echo "security-client-auth-init=templates.security.PKCSAuthInit.create" >> config/invalid-client.properties
-echo "security-keystorepath=test-client-keys/valid-client.keystore" >> config/invalid-client.properties
-echo "security-alias=invalid-client" >> config/invalid-client.properties
-echo "security-keystorepass=$SECURITY_PUBLIC_KEYPASS" >> config/invalid-client.properties
-cat config/invalid-client.properties
+echo "name=SecurityPkcsClient" >> invalid-client.properties
+echo "cache-xml-file=gemfire.xml" >> invalid-client.properties
+echo "security-client-auth-init=templates.security.PKCSAuthInit.create" >> invalid-client.properties
+echo "security-keystorepath=test-client-keys/valid-client.keystore" >> invalid-client.properties
+echo "security-alias=invalid-client" >> invalid-client.properties
+echo "security-keystorepass=$SECURITY_PUBLIC_KEYPASS" >> invalid-client.properties
+cat invalid-client.properties
 
 java  -Done-jar.main.class=com.tmo.security.SecurityPkcsClient \
 -jar target/secure-client-0.0.1-SNAPSHOT.one-jar.jar \
