@@ -54,8 +54,8 @@ echo "security-keystorepass=$SECURITY_PUBLIC_KEYPASS" >> invalid-client.properti
 cat invalid-client.properties
 
 java  -Done-jar.main.class=com.tmo.security.SecurityPkcsClient \
--jar target/secure-client-0.0.1-SNAPSHOT.one-jar.jar \
-valid-client.properties test-region >> invalid-client.log
+-jar gemfire-security/$TEST_JAR \
+invalid-client.properties test-region >> invalid-client.log
 cat invalid-client.log
 
 gfsh \
