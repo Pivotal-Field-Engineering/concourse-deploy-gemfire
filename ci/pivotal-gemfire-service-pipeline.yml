@@ -388,17 +388,20 @@ jobs:
         image_resource:
           type: docker-image
           source:
-            repository: azwickey/deploy-worker
+            repository: jamesdbloom/docker-java8-maven
         run:
           path: concourse-deploy-gemfire/ci/tasks/validate-authorization.sh
         params:
           PIVNET_TOKEN: {{pivnet-api-token}}
           GEMFIRE_CLIENT_URL: {{gemfire-client-url}}
           LOCATOR_CONNECTION: {{locator-connection-test}}
+          TEST_JAR: {{security-client-glob}}
+          SECURITY_PUBLIC_KEYPASS: {{security-public-keypass}}
         inputs:
         - name: concourse-deploy-gemfire
         - name: gemfire-security
-        - name: test-client-keys
+        - name: test-client-keys-valid
+        - name: test-client-keys-invalid
 - name: onboard-client
   plan:
     - get: client-onboard-repo
