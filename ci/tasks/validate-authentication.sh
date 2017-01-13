@@ -58,10 +58,5 @@ java  -Done-jar.main.class=com.tmo.security.SecurityPkcsClient \
 invalid-client.properties test-region >> invalid-client.log
 cat invalid-client.log
 
-gfsh \
--e "connect --locator=${LOCATOR_CONNECTION}" \
--e "destroy region --name=test-region" \
--e "list regions"
-
 cat valid-client.log | grep "Auth Success" &&
 cat invalid-client.log | grep "Auth Failed"
