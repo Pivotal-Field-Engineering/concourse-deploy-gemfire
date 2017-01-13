@@ -33,7 +33,7 @@ cat gemfire.xml
 echo "name=SecurityPkcsClient" >> valid-client.properties
 echo "cache-xml-file=gemfire.xml" >> valid-client.properties
 echo "security-client-auth-init=templates.security.PKCSAuthInit.create" >> valid-client.properties
-echo "security-keystorepath=test-client-keys/valid-client.keystore" >> valid-client.properties
+echo "security-keystorepath=test-client-keys-valid/valid-client.keystore" >> valid-client.properties
 echo "security-alias=valid-client" >> valid-client.properties
 echo "security-keystorepass=$SECURITY_PUBLIC_KEYPASS" >> valid-client.properties
 cat valid-client.properties
@@ -48,7 +48,7 @@ cat valid-client.log
 echo "name=SecurityPkcsClient" >> invalid-client.properties
 echo "cache-xml-file=gemfire.xml" >> invalid-client.properties
 echo "security-client-auth-init=templates.security.PKCSAuthInit.create" >> invalid-client.properties
-echo "security-keystorepath=test-client-keys/invalid-client.keystore" >> invalid-client.properties
+echo "security-keystorepath=test-client-keys-invalid/invalid-client.keystore" >> invalid-client.properties
 echo "security-alias=invalid-client" >> invalid-client.properties
 echo "security-keystorepass=$SECURITY_PUBLIC_KEYPASS" >> invalid-client.properties
 cat invalid-client.properties
@@ -60,7 +60,7 @@ cat invalid-client.log
 
 gfsh \
 -e "connect --locator=${LOCATOR_CONNECTION}" \
--e "destroy region --name=/test-region" \
+-e "destroy region --name=test-region" \
 -e "list regions"
 
 cat valid-client.log | grep "Auth Success" &&
