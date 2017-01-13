@@ -75,6 +75,11 @@ resources:
   source:
     uri: https://github.com/azwickey-pivotal/gemfire-client-onboard
     branch: master
+- name: client-cert-repo
+  type: git
+  source:
+    uri: {{client-cert-repo}}
+    branch: master
 - name: test-client-keys-valid
   type: s3
   source:
@@ -164,6 +169,7 @@ jobs:
       params:
         globs:
         - {{gemfire-release-glob}}
+    - get: client-cert-repo
     - task: create-keystore
       config:
         platform: linux
@@ -175,9 +181,11 @@ jobs:
           path: concourse-deploy-gemfire/ci/tasks/generate-keystore.sh
         params:
           KEYSTORE_PASS: {{security-public-keypass}}
+          CERT_FOLDER: {{client-cert-folder}}
         inputs:
         - name: concourse-deploy-gemfire
         - name: gemfire-security
+        - name: client-cert-repo
         outputs:
         - name: java-keystore
     - task: generate-manifest

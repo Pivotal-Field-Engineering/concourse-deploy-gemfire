@@ -32,7 +32,23 @@ keytool -import \
 -storepass $KEYSTORE_PASS \
 -noprompt
 
-#Invalid Keystore
+#Import anything the client cert repo into truststore
+for CERT in ../client-cert-repo/$CERT_FOLDER
+do
+  echo "Processing $CERT client certificate..."
+  ALIAS=`echo "$fullfile" | cut -d'.' -f1`
+  keytool -import \
+  -file ../client-cert-repo/$CERT \
+  -alias $ALIAS \
+  -keystore truststore \
+  -storepass $KEYSTORE_PASS \
+  -noprompt
+done
+
+keytool -list -keystore truststore -storepass $KEYSTORE_PASS
+
+
+#Invalid Keystore for testing later
 keytool -genkeypair \
 -dname "cn=Your Name, ou=GemFire, o=GemStone, c=US" \
 -storetype PKCS12 \
