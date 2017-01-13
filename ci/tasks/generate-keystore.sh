@@ -36,9 +36,10 @@ keytool -import \
 for CERT in ../client-cert-repo/$CERT_FOLDER/*
 do
   echo "Processing $CERT client certificate..."
-  ALIAS=`echo "$fullfile" | cut -d'.' -f1`
+  FNAME=$(basename "$CERT")
+  ALIAS=`echo "$FNAME" | cut -d'.' -f1`
   keytool -import \
-  -file ../client-cert-repo/$CERT \
+  -file $CERT \
   -alias $ALIAS \
   -keystore truststore \
   -storepass $KEYSTORE_PASS \
