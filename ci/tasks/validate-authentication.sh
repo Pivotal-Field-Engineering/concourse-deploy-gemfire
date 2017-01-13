@@ -48,7 +48,7 @@ cat valid-client.log
 echo "name=SecurityPkcsClient" >> invalid-client.properties
 echo "cache-xml-file=gemfire.xml" >> invalid-client.properties
 echo "security-client-auth-init=templates.security.PKCSAuthInit.create" >> invalid-client.properties
-echo "security-keystorepath=test-client-keys/valid-client.keystore" >> invalid-client.properties
+echo "security-keystorepath=test-client-keys/invalid-client.keystore" >> invalid-client.properties
 echo "security-alias=invalid-client" >> invalid-client.properties
 echo "security-keystorepass=$SECURITY_PUBLIC_KEYPASS" >> invalid-client.properties
 cat invalid-client.properties

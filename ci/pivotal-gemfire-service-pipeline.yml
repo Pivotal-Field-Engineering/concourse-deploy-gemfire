@@ -75,11 +75,18 @@ resources:
   source:
     uri: https://github.com/azwickey-pivotal/gemfire-client-onboard
     branch: master
-- name: test-client-keys
+- name: test-client-keys-valid
   type: s3
   source:
     bucket: tmo-gemfire-security
     versioned_file: haas50-keys/valid-client.keystore
+    access_key_id: {{s3-access-key-id}}
+    secret_access_key: {{s3-secret-access-key}}
+- name: test-client-keys-invalid
+  type: s3
+  source:
+    bucket: tmo-gemfire-security
+    versioned_file: haas50-keys/invalid-client.keystore
     access_key_id: {{s3-access-key-id}}
     secret_access_key: {{s3-secret-access-key}}
 
@@ -221,9 +228,12 @@ jobs:
         - stemcells/bosh-stemcell*.tgz
         releases:
         - p-gemfire-bosh-release/*.tgz
-    - put: test-client-keys
+    - put: test-client-keys-valid
       params:
         file: java-keystore/valid-client.keystore
+    - put: test-client-keys-invalid
+      params:
+        file: java-keystore/invalid-client.keystore
 - name: deploy-authz-jars
   public: true
   plan:
@@ -350,7 +360,8 @@ jobs:
       params:
         globs:
         - {{security-client-glob}}
-    - get: test-client-keys
+    - get: test-client-keys-valid
+    - get: test-client-keys-invalid
     - task: validate-authentication
       config:
         platform: linux

@@ -4,6 +4,7 @@ set -xe
 ls -lha
 cd java-keystore
 
+#Valid Cert
 keytool -genkeypair \
 -dname "cn=Your Name, ou=GemFire, o=GemStone, c=US" \
 -storetype PKCS12 \
@@ -30,3 +31,14 @@ keytool -import \
 -keystore truststore \
 -storepass $KEYSTORE_PASS \
 -noprompt
+
+#Invalid Keystore
+keytool -genkeypair \
+-dname "cn=Your Name, ou=GemFire, o=GemStone, c=US" \
+-storetype PKCS12 \
+-keyalg RSA \
+-keysize 2048 \
+-alias invalid-client \
+-keystore invalid-client.keystore \
+-storepass $KEYSTORE_PASS \
+-validity 180
