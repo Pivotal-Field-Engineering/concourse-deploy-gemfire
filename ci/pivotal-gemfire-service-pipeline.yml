@@ -380,7 +380,8 @@ jobs:
         inputs:
         - name: concourse-deploy-gemfire
         - name: gemfire-security
-        - name: test-client-keys
+        - name: test-client-keys-valid
+        - name: test-client-keys-invalid
     - task: validate-authorization
       config:
         platform: linux
@@ -396,6 +397,8 @@ jobs:
           LOCATOR_CONNECTION: {{locator-connection-test}}
         inputs:
         - name: concourse-deploy-gemfire
+        - name: gemfire-security
+        - name: test-client-keys
 - name: onboard-client
   plan:
     - get: client-onboard-repo
