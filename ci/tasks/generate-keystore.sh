@@ -33,7 +33,7 @@ keytool -import \
 -noprompt
 
 #Import anything the client cert repo into truststore
-for CERT in ../client-cert-repo/$CERT_FOLDER
+for CERT in ../client-cert-repo/$CERT_FOLDER/*
 do
   echo "Processing $CERT client certificate..."
   ALIAS=`echo "$fullfile" | cut -d'.' -f1`
