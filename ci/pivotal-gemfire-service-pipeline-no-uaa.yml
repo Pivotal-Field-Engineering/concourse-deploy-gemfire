@@ -5,17 +5,21 @@ groups:
   - configure-cluster
   - validation-test
   - rest-api-test
+  - security-test
   - deploy
+  - deploy-authz-jars
   - onboard-client
 - name: deploy
   jobs:
   - get-product-version
   - deploy
+  - deploy-authz-jars
   - configure-cluster
 - name: validation
   jobs:
   - validation-test
   - rest-api-test
+  - security-test
 - name: client-onboard
   jobs:
   - onboard-client
@@ -26,6 +30,12 @@ resources:
   source:
     uri: https://github.com/Pivotal-Field-Engineering/concourse-deploy-gemfire
     branch: master
+- name: gemfire-security
+  type: github-release
+  source:
+    user: azwickey-pivotal
+    repository: tmobile-examples
+    access_token: {{github-token}}
 - name: omg-cli
   type: github-release
   check_every: 4h
@@ -44,7 +54,7 @@ resources:
   check_every: 4h
   source:
     user: enaml-ops
-    repository: omg-product-bundle
+    repository: gemfire-plugin
     access_token: {{github-token}}
 - name: {{deployment-name}}
   type: bosh-deployment
@@ -60,17 +70,30 @@ resources:
     api_token: {{pivnet-api-token}}
     product_slug: stemcells
     product_version: {{stemcell-version}}
-- name: security-release
-  type: github-release
-  source:
-    user: Pivotal-Field-Engineering
-    repository: concourse-deploy-gemfire
-    access_token: {{github-token}}
 - name: client-onboard-repo
   type: git
   source:
     uri: https://github.com/azwickey-pivotal/gemfire-client-onboard
     branch: master
+- name: client-cert-repo
+  type: git
+  source:
+    uri: {{client-cert-repo}}
+    branch: master
+- name: test-client-keys-valid
+  type: s3
+  source:
+    bucket: tmo-gemfire-security
+    versioned_file: haas50-keys/valid-client.keystore
+    access_key_id: {{s3-access-key-id}}
+    secret_access_key: {{s3-secret-access-key}}
+- name: test-client-keys-invalid
+  type: s3
+  source:
+    bucket: tmo-gemfire-security
+    versioned_file: haas50-keys/invalid-client.keystore
+    access_key_id: {{s3-access-key-id}}
+    secret_access_key: {{s3-secret-access-key}}
 
 resource_types:
 - name: pivnet
@@ -92,7 +115,7 @@ jobs:
       trigger: true
       params:
         globs:
-        - p-gemfire-plugin-linux
+        - p-gemfire-linux
     - task: get-product-version
       config:
         platform: linux
@@ -117,17 +140,25 @@ jobs:
   plan:
     - get: concourse-deploy-gemfire
       trigger: true  #Temporarily add this in for testing
+    - get: gemfire-security
+      trigger: true
+      params:
+        globs:
+        - {{security-glob}}
+        - {{security-client-glob}}
     - get: omg-cli
-      passed: [get-product-version]
+      passed:
+        - get-product-version
       params:
         globs:
         - omg-linux
     - get: omg-product-bundle
-      passed: [get-product-version]
+      passed:
+        - get-product-version
       trigger: true
       params:
         globs:
-        - p-gemfire-plugin-linux
+        - p-gemfire-linux
     - get: stemcells
       trigger: true
       params:
@@ -137,8 +168,26 @@ jobs:
       trigger: true
       params:
         globs:
-        #- GemFire-v1.0.3.tgz
         - {{gemfire-release-glob}}
+    - get: client-cert-repo
+    - task: create-keystore
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: azwickey/deploy-worker
+        run:
+          path: concourse-deploy-gemfire/ci/tasks/generate-keystore.sh
+        params:
+          KEYSTORE_PASS: {{security-public-keypass}}
+          CERT_FOLDER: {{client-cert-folder}}
+        inputs:
+        - name: concourse-deploy-gemfire
+        - name: gemfire-security
+        - name: client-cert-repo
+        outputs:
+        - name: java-keystore
     - task: generate-manifest
       config:
         platform: linux
@@ -163,14 +212,20 @@ jobs:
           OMG_AZ: {{az-list}}
           OMG_NETWORK_NAME: {{network-name}}
           OMG_LOCATOR_STATIC_IP: {{locator-ip-list}}
-          OMG_SERVER_STATIC_IP: {{server-ip-list}}
+          OMG_SERVER_INSTANCE_COUNT: {{server-instance-count}}
           OMG_GEMFIRE_LOCATOR_VM_SIZE: {{locator-vm-size}}
           OMG_GEMFIRE_SERVER_VM_SIZE: {{server-vm-size}}
-
+          USE_AUTHN: {{use-authn}}
+          SECURITY_CLIENT_AUTHENTICATOR: {{security-client-authenticator}}
+          SECURITY_CLIENT_ACCESSOR: {{security-client-accessor}}
+          SECURITY_PUBLIC_KEYPASS: {{security-public-keypass}}
+          SECURITY_CLIENT_JAR: {{security-glob}}
         inputs:
         - name: concourse-deploy-gemfire
         - name: omg-cli
         - name: omg-product-bundle
+        - name: java-keystore
+        - name: gemfire-security
         outputs:
         - name: manifest
           path: ""
@@ -181,6 +236,41 @@ jobs:
         - stemcells/bosh-stemcell*.tgz
         releases:
         - p-gemfire-bosh-release/*.tgz
+    - put: test-client-keys-valid
+      params:
+        file: java-keystore/valid-client.keystore
+    - put: test-client-keys-invalid
+      params:
+        file: java-keystore/invalid-client.keystore
+- name: deploy-authz-jars
+  public: true
+  plan:
+    - get: concourse-deploy-gemfire
+      trigger: true
+      passed:
+      - deploy
+    - get: gemfire-security
+      trigger: true
+      params:
+        globs:
+        - {{security-authz-glob}}
+    - task: deploy-jars
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: azwickey/deploy-worker
+        run:
+          path: concourse-deploy-gemfire/ci/tasks/deploy-jars.sh
+        inputs:
+        - name: concourse-deploy-gemfire
+        - name: gemfire-security
+        params:
+          LOCATOR_CONNECTION: {{locator-connection-test}}
+          PIVNET_TOKEN: {{pivnet-api-token}}
+          GEMFIRE_CLIENT_URL: {{gemfire-client-url}}
+          JAR: {{security-authz-glob}}
 - name: configure-cluster
   public: true
   plan:
@@ -202,26 +292,7 @@ jobs:
         params:
           LOCATOR_CONNECTION: {{locator-connection-test}}
           PIVNET_TOKEN: {{pivnet-api-token}}
-    - get: security-release
-      params:
-        globs:
-        - {{security-release-glob}}
-    - task: deploy-jars
-      config:
-        platform: linux
-        image_resource:
-          type: docker-image
-          source:
-            repository: azwickey/deploy-worker
-        run:
-          path: concourse-deploy-gemfire/ci/tasks/deploy-jars.sh
-        inputs:
-        - name: concourse-deploy-gemfire
-        - name: security-release
-        params:
-          LOCATOR_CONNECTION: {{locator-connection-test}}
-          PIVNET_TOKEN: {{pivnet-api-token}}
-          JAR: {{security-release-glob}}
+          GEMFIRE_CLIENT_URL: {{gemfire-client-url}}
     - task: restart-servers
       config:
         platform: linux
@@ -229,7 +300,7 @@ jobs:
           type: docker-image
           source:
             repository: azwickey/deploy-worker
-        run:
+        rrun:
           path: concourse-deploy-gemfire/ci/tasks/restart-servers-no-uaa.sh
         inputs:
         - name: concourse-deploy-gemfire
@@ -258,6 +329,8 @@ jobs:
         params:
           PIVNET_TOKEN: {{pivnet-api-token}}
           LOCATOR_CONNECTION: {{locator-connection-test}}
+          AZ_PREFIX: {{az-prefix}}
+          GEMFIRE_CLIENT_URL: {{gemfire-client-url}}
         inputs:
         - name: concourse-deploy-gemfire
 - name: rest-api-test
@@ -279,9 +352,64 @@ jobs:
           REST_API_ACTIVE: {{rest-api-active}}
           REST_API_PORT: {{rest-api-port}}
           PIVNET_TOKEN: {{pivnet-api-token}}
+          GEMFIRE_CLIENT_URL: {{gemfire-client-url}}
           LOCATOR_CONNECTION: {{locator-connection-test}}
         inputs:
         - name: concourse-deploy-gemfire
+- name: security-test
+  public: true
+  plan:
+    - get: concourse-deploy-gemfire
+      trigger: true
+      passed:
+      - deploy
+      - deploy-authz-jars
+    - get: gemfire-security
+      params:
+        globs:
+        - {{security-client-glob}}
+    - get: test-client-keys-valid
+    - get: test-client-keys-invalid
+    - task: validate-authentication
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: jamesdbloom/docker-java8-maven
+        run:
+          path: concourse-deploy-gemfire/ci/tasks/validate-authentication.sh
+        params:
+          PIVNET_TOKEN: {{pivnet-api-token}}
+          GEMFIRE_CLIENT_URL: {{gemfire-client-url}}
+          LOCATOR_CONNECTION: {{locator-connection-test}}
+          TEST_JAR: {{security-client-glob}}
+          SECURITY_PUBLIC_KEYPASS: {{security-public-keypass}}
+        inputs:
+        - name: concourse-deploy-gemfire
+        - name: gemfire-security
+        - name: test-client-keys-valid
+        - name: test-client-keys-invalid
+    - task: validate-authorization
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: jamesdbloom/docker-java8-maven
+        run:
+          path: concourse-deploy-gemfire/ci/tasks/validate-authorization.sh
+        params:
+          PIVNET_TOKEN: {{pivnet-api-token}}
+          GEMFIRE_CLIENT_URL: {{gemfire-client-url}}
+          LOCATOR_CONNECTION: {{locator-connection-test}}
+          TEST_JAR: {{security-client-glob}}
+          SECURITY_PUBLIC_KEYPASS: {{security-public-keypass}}
+        inputs:
+        - name: concourse-deploy-gemfire
+        - name: gemfire-security
+        - name: test-client-keys-valid
+        - name: test-client-keys-invalid
 - name: onboard-client
   plan:
     - get: client-onboard-repo
@@ -297,6 +425,7 @@ jobs:
           path: client-onboard-repo/ci/tasks/onboard-clients.sh
         params:
           PIVNET_TOKEN: {{pivnet-api-token}}
+          GEMFIRE_CLIENT_URL: {{gemfire-client-url}}
           LOCATOR_CONNECTION: {{locator-connection-test}}
         inputs:
         - name: client-onboard-repo
