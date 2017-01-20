@@ -33,7 +33,7 @@ resources:
 - name: gemfire-security
   type: github-release
   source:
-    user: azwickey-pivotal
+    user: Pivotal-Field-Engineering
     repository: tmobile-examples
     access_token: {{github-token}}
 - name: omg-cli
