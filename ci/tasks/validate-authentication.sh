@@ -14,7 +14,7 @@ gfsh version
 gfsh \
 -e "connect --locator=${LOCATOR_CONNECTION}" \
 -e "list members" \
--e "create region --name=test-region --type=PARTITION_REDUNDANT" \
+-e "create region --name=testRegion --type=PARTITION_REDUNDANT" \
 -e "list regions"
 
 LOCATOR_IP=$(echo $LOCATOR_CONNECTION | cut -d'[' -f 1)
@@ -25,7 +25,7 @@ echo '"-//GemStone Systems, Inc.//GemFire Declarative Caching 6.5//EN"' >> gemfi
 echo '"http://www.gemstone.com/dtd/cache6_5.dtd">' >> gemfire.xml
 echo '<client-cache>' >> gemfire.xml
 echo "<pool name=\"client\" subscription-enabled=\"false\"><locator host=\"$LOCATOR_IP\" port=\"$LOCATOR_PORT\"/></pool>" >> gemfire.xml
-echo '<region name="test-region" refid="PROXY"/>' >> gemfire.xml
+echo '<region name="testRegion" refid="PROXY"/>' >> gemfire.xml
 echo '</client-cache>' >> gemfire.xml
 cat gemfire.xml
 
@@ -41,7 +41,7 @@ cat valid-client.properties
 #eventually get the version number from POM....  Hardcoded now
 java  -Done-jar.main.class=com.tmo.security.SecurityPkcsClient \
 -jar gemfire-security/$TEST_JAR \
-valid-client.properties test-region >> valid-client.log
+valid-client.properties testRegion >> valid-client.log
 cat valid-client.log
 
 #Test with invalid client
@@ -55,12 +55,12 @@ cat invalid-client.properties
 
 java  -Done-jar.main.class=com.tmo.security.SecurityPkcsClient \
 -jar gemfire-security/$TEST_JAR \
-invalid-client.properties test-region >> invalid-client.log
+invalid-client.properties testRegion >> invalid-client.log
 cat invalid-client.log
 
 gfsh \
 -e "connect --locator=${LOCATOR_CONNECTION}" \
--e "destroy region --name=/test-region" \
+-e "destroy region --name=/testRegion" \
 -e "list regions"
 
 cat valid-client.log | grep "Auth Success" &&
