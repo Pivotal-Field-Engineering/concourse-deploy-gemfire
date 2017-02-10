@@ -51,5 +51,11 @@ java  -Done-jar.main.class=com.tmo.security.SecurityPkcsClient \
 valid-client.properties test-authz-region >> invalid-client.log
 cat invalid-client.log
 
+gfsh \
+-e "connect --locator=${LOCATOR_CONNECTION}" \
+-e "destroy region --name=/test-region" \
+-e "destroy region --name=/test-authz-region" \
+-e "list regions"
+
 cat valid-client.log | grep "Authz Success" &&
 cat invalid-client.log | grep "NotAuthorizedException: Not authorized to perform GET operation on region"
