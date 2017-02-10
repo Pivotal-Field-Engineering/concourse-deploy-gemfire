@@ -15,13 +15,17 @@ gfsh \
 -e "put --key=('5') --value=('E') --region=testing" \
 -e "put --key=('6') --value=('F') --region=testing" \
 -e "put --key=('7') --value=('G') --region=testing" \
--e "put --key=('8') --value=('H') --region=testing" \
-
-for ((n=0;n<$SERVER_COUNT;n++))
-do
- -e "describe config --member=cacheserver-${n}" \
-done
+-e "put --key=('8') --value=('H') --region=testing"
 -e "show metrics --categories=partition --region=testing" > gemfire-output.txt
+
+echo "Server Count: $SERVER_COUNT"
+for ((SERVER=0;n=<$SERVER_COUNT;SERVER++))
+do
+  echo "Checking cacheserver-$SERVER"
+  gfsh \
+  -e "connect --locator=${LOCATOR_CONNECTION}" \
+  -e "describe config --member=cacheserver-$SERVER" >> gemfire-output.txt
+done
 cat gemfire-output.txt
 
 # checks redundancy in regions using the suggested method from pivotal docs:
@@ -29,8 +33,14 @@ cat gemfire-output.txt
 AZS=(${AZ_LIST//,/ })
 echo "AZs: $AZS"
 
-for az in $AZS
-do
-    cat gemfire-output.txt | grep redundancy-zone | grep ": $az" &&
-done
-cat gemfire-output.txt | grep numBucketsWithoutRedundancy | grep "| 0"
+AZ_SIZE=${#AZS[@]}
+if [[ $AZ_SIZE >1 ]] ; then
+  CMD=""
+  for az in $AZS
+  do
+    CMD+="cat gemfire-output.txt | grep redundancy-zone | grep \": $az\" && "
+  done
+  CMD+='cat gemfire-output.txt | grep numBucketsWithoutRedundancy | grep "| 0"'
+  echo "CMD: $CMD"
+  eval $CMD
+fi
