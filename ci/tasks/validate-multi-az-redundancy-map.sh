@@ -16,12 +16,11 @@ gfsh \
 -e "put --key=('6') --value=('F') --region=testing" \
 -e "put --key=('7') --value=('G') --region=testing" \
 -e "put --key=('8') --value=('H') --region=testing" \
--e "describe config --member=cacheserver-0" \
--e "describe config --member=cacheserver-1" \
--e "describe config --member=cacheserver-2" \
--e "describe config --member=cacheserver-3" \
--e "describe config --member=cacheserver-4" \
--e "describe config --member=cacheserver-5" \
+
+for ((n=0;n<$SERVER_COUNT;n++))
+do
+ -e "describe config --member=cacheserver-${n}" \
+done
 -e "show metrics --categories=partition --region=testing" > gemfire-output.txt
 cat gemfire-output.txt
 

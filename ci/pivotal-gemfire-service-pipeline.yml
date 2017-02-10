@@ -331,6 +331,7 @@ jobs:
           LOCATOR_CONNECTION: {{locator-connection-test}}
           AZ_PREFIX: {{az-prefix}}
           GEMFIRE_CLIENT_URL: {{gemfire-client-url}}
+          SERVER_COUNT: {{server-instance-count}}
         inputs:
         - name: concourse-deploy-gemfire
 - name: rest-api-test
