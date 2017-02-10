@@ -26,7 +26,11 @@ cat gemfire-output.txt
 
 # checks redundancy in regions using the suggested method from pivotal docs:
 # http://gemfire.docs.pivotal.io/docs-gemfire/latest/developing/partitioned_regions/checking_region_redundancy.html
-cat gemfire-output.txt | grep numBucketsWithoutRedundancy | grep "| 0" &&
-cat gemfire-output.txt | grep redundancy-zone | grep ": $AZ_PREFIX"1 &&
-cat gemfire-output.txt | grep redundancy-zone | grep ": $AZ_PREFIX"2 &&
-cat gemfire-output.txt | grep redundancy-zone | grep ": $AZ_PREFIX"3
+AZS=(${AZ_LIST//,/ })
+echo "AZs: $AZS"
+
+for az in $AZS
+do
+    cat gemfire-output.txt | grep redundancy-zone | grep ": $az" &&
+done
+cat gemfire-output.txt | grep numBucketsWithoutRedundancy | grep "| 0"

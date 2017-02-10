@@ -329,7 +329,7 @@ jobs:
         params:
           PIVNET_TOKEN: {{pivnet-api-token}}
           LOCATOR_CONNECTION: {{locator-connection-test}}
-          AZ_PREFIX: {{az-prefix}}
+          AZ_LIST: {{az-list}}
           GEMFIRE_CLIENT_URL: {{gemfire-client-url}}
           SERVER_COUNT: {{server-instance-count}}
         inputs:

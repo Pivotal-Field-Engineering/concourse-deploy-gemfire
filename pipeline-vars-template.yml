@@ -35,7 +35,6 @@ pivnet-api-token: xxxxxxx
 gemfire-client-url: https://network.pivotal.io/api/v2/products/pivotal-gemfire/releases/2804/product_files/8892/download
 github-token: xxxxxxx
 az-list: env1,env2,env3
-az-prefix: env
 network-name: VMNetwork
 locator-connection-test: 'xxxxxxx[55221]'
 locator-ip-list: xxxxxxx
