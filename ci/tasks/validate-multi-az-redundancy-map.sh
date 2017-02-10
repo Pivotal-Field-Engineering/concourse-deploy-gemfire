@@ -15,7 +15,7 @@ gfsh \
 -e "put --key=('5') --value=('E') --region=testing" \
 -e "put --key=('6') --value=('F') --region=testing" \
 -e "put --key=('7') --value=('G') --region=testing" \
--e "put --key=('8') --value=('H') --region=testing"
+-e "put --key=('8') --value=('H') --region=testing" \
 -e "show metrics --categories=partition --region=testing" > gemfire-output.txt
 
 echo "Server Count: $SERVER_COUNT"

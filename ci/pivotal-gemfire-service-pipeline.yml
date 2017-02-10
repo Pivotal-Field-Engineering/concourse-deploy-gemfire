@@ -8,7 +8,7 @@ groups:
   - security-test
   - deploy
   - deploy-authz-jars
-  - onboard-client
+  #- onboard-client
 - name: deploy
   jobs:
   - get-product-version
@@ -20,9 +20,9 @@ groups:
   - validation-test
   - rest-api-test
   - security-test
-- name: client-onboard
-  jobs:
-  - onboard-client
+#- name: client-onboard
+#  jobs:
+#  - onboard-client
 
 resources:
 - name: concourse-deploy-gemfire
@@ -70,11 +70,11 @@ resources:
     api_token: {{pivnet-api-token}}
     product_slug: stemcells
     product_version: {{stemcell-version}}
-- name: client-onboard-repo
-  type: git
-  source:
-    uri: https://github.com/azwickey-pivotal/gemfire-client-onboard
-    branch: master
+#- name: client-onboard-repo
+#  type: git
+#  source:
+#    uri: https://github.com/azwickey-pivotal/gemfire-client-onboard
+#    branch: master
 - name: client-cert-repo
   type: git
   source:
@@ -411,22 +411,22 @@ jobs:
         - name: gemfire-security
         - name: test-client-keys-valid
         - name: test-client-keys-invalid
-- name: onboard-client
-  plan:
-    - get: client-onboard-repo
-      trigger: true
-    - task: onboard
-      config:
-        platform: linux
-        image_resource:
-          type: docker-image
-          source:
-            repository: azwickey/deploy-worker
-        run:
-          path: client-onboard-repo/ci/tasks/onboard-clients.sh
-        params:
-          PIVNET_TOKEN: {{pivnet-api-token}}
-          GEMFIRE_CLIENT_URL: {{gemfire-client-url}}
-          LOCATOR_CONNECTION: {{locator-connection-test}}
-        inputs:
-        - name: client-onboard-repo
+#- name: onboard-client
+#  plan:
+#    - get: client-onboard-repo
+#      trigger: true
+#    - task: onboard
+#      config:
+#        platform: linux
+#        image_resource:
+#          type: docker-image
+#          source:
+#            repository: azwickey/deploy-worker
+#        run:
+#          path: client-onboard-repo/ci/tasks/onboard-clients.sh
+#        params:
+#          PIVNET_TOKEN: {{pivnet-api-token}}
+#          GEMFIRE_CLIENT_URL: {{gemfire-client-url}}
+#          LOCATOR_CONNECTION: {{locator-connection-test}}
+#        inputs:
+#        - name: client-onboard-repo
