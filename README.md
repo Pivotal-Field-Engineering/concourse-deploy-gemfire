@@ -1,4 +1,4 @@
-# concourse-deploy-gemfire
+<h1> VMware has ended active development of this project, this repository will no longer be updated.</h1><br># concourse-deploy-gemfire
 
 Deploy Gemfire with [omg](http://enaml.pezapp.io) in a Concourse pipeline.
 
